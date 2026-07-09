@@ -5,6 +5,7 @@
 <head>
 
     <title>Chat App</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -33,7 +34,7 @@
             height:90vh;
         }
         .users-list{
-            height:82vh;
+            height:78vh;
             overflow-y:auto;
         }
 
@@ -216,7 +217,7 @@ class="text-decoration-none text-dark">
                     <span class="btn btn-light border">
                         {{-- {{ $message->message }} --}}
                          @if($message->message_type == 'image')
-            <img src="{{ asset('storage/' . $message->message) }}" width="300" height="250">
+            <img  src="{{ asset('storage/' . $message->message) }}" width="300" height="250">
             @else
                 {{ $message->message }}
             @endif
@@ -232,11 +233,12 @@ class="text-decoration-none text-dark">
 
 </div>
 
-        <form method="POST" action="/send-message" enctype="multipart/form-data" class="p-3 border-top">
+        <form   id="messageForm" method="POST" action="/send-message" enctype="multipart/form-data" class="p-3 border-top">
 
             @csrf
 
             <input
+                id="receiver_id"
                 type="hidden"
                 name="receiver_id"
                 value="{{ $receiver->id }}"
@@ -245,6 +247,7 @@ class="text-decoration-none text-dark">
             <div class="input-group">
 
                 <input
+                    id="message"
                     type="text"
                     class="form-control"
                     name="message"
@@ -256,7 +259,7 @@ class="text-decoration-none text-dark">
                 Upload Photo
                 </button>
 
-                <button class="btn btn-primary">
+                <button class="btn btn-primary"  type="submit">
                     Send
 
                 </button>
@@ -309,8 +312,13 @@ if(chatBody){
 
 </script>
 
+<!-- <script>
+const form = document.getElementById("messageForm");
 
-
+form.addEventListener("submit", function (e) {
+    e.preventDefault();
+});
+</script> -->
 
 <script>
     window.userId = {{ auth()->id() }};
@@ -322,5 +330,102 @@ if(chatBody){
     @endif
 </script>
 
+<script>
+document.getElementById('messageForm').addEventListener('submit', function(event) {
+
+    event.preventDefault();
+    console.log("Form Submitted");
+
+    let receiverId = document.getElementById("receiver_id").value;
+    let message = document.getElementById("message").value;
+    let selectedFile = document.getElementById("photo").files[0];
+
+    let formData = new FormData();
+
+    formData.append("receiver_id", receiverId);
+
+    if (selectedFile) {
+        formData.append("photo", selectedFile);
+    } else {
+        formData.append("message", message);
+    }
+
+    // Message ko turant screen par dikhao
+    let messages = document.getElementById("messages");
+
+    if (selectedFile) {
+
+        messages.innerHTML += `
+            <div class="text-end mb-2">
+            <span class= "btn btn-primary">
+                <img src="${URL.createObjectURL(selectedFile)}" width="300" height="250">
+                </span>
+            </div>
+        `;
+
+    } else {
+
+        messages.innerHTML += `
+            <div class="text-end mb-2">
+                <span class="btn btn-primary">
+                    ${message}
+                </span>
+            </div>
+        `;
+
+    }
+
+    let chatBody = document.getElementById("chatBody");
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    fetch("/send-message", {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+
+        document.getElementById("messageForm").reset();
+
+    })
+    .catch(error => {
+        console.error(error);
+        alert("Something went wrong!");
+    });
+
+});
+</script>
+<script>
+    
+let html = "";
+
+if (message.sender_id == currentUserId) {
+
+    html = `
+        <div style="text-align:right;">
+            <span  style="background:blue;color:white;padding:10px;border-radius:10px;">
+                ${message.message}
+            </span>
+        </div>
+    `;
+
+} else {
+
+    html = `
+        <div style="text-align:left;">
+            <span style="background:gray;color:white;padding:10px;border-radius:10px;">
+                ${message.message}
+            </span>
+        </div>
+    `;
+
+}
+
+document.getElementById("chatBody").innerHTML += html;
+
+</script>
 </body>
 </html>

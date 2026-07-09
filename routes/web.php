@@ -5,11 +5,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TestController;
 use App\Models\User;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('/form', [TestController::class, 'index']);
+Route::post('/submit', [TestController::class, 'submit']);
 
 Route::get('testing/{id}',function($id){
     $users = User::where('id', $id)->first();
