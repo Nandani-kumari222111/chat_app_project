@@ -147,9 +147,14 @@ class="text-decoration-none text-dark">
 
             <br>
 
-            <small>
+            <!-- <small>
                 Click to Chat
-            </small>
+            </small> -->
+            @if($user->is_online)
+            <small class="text-success">🟢 Online</small>
+            @else
+            <small class="text-secondary">⚫ Offline</small>
+            @endif
 
         </div>
 
@@ -181,9 +186,15 @@ class="text-decoration-none text-dark">
             {{ $receiver->name }}
         </h5>
 
-        <small class="text-success">
-            Online
-        </small>
+        @if($receiver->is_online)
+            <small class="text-success">🟢 Online</small>
+        @else
+            <small class="text-secondary">⚫ Offline</small>
+        @endif
+
+        <!-- <span style="color:green;">Online</span>
+
+        <span style="color:gray;">Offline</span> -->
 
     </div>
 
@@ -427,5 +438,13 @@ if (message.sender_id == currentUserId) {
 document.getElementById("chatBody").innerHTML += html;
 
 </script>
+
+<!-- <script>
+    if (user.is_online) {
+    console.log(" Online");
+    } else {
+    console.log(" Offline");
+    }
+</script> -->
 </body>
 </html>
