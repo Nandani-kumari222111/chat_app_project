@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Conversation;
 use App\Models\Message;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password' , 'is_online'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

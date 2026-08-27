@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-
-
-<html>
-<head>
-
-    <title>Chat App</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Chat') }}
+        </h2>
+         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+         <style>
 
         body{
             background:#f5f5f5;
@@ -73,10 +67,7 @@
         }
 
     </style>
-
-</head>
-
-<body>
+    </x-slot>
 
 <div class="container-fluid">
 
@@ -133,7 +124,8 @@ class="text-decoration-none text-dark">
     <div class="d-flex align-items-center p-3 border-bottom user-item
         @if(isset($receiver) && $receiver && $receiver->id == $user->id)
             bg-primary text-white
-        @endif">
+        @endif"
+        data-user-id="{{ $user->id }}">
 
         <img
             src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=0D6EFD&color=fff"
@@ -147,9 +139,11 @@ class="text-decoration-none text-dark">
 
             <br>
 
-            <small>
-                Click to Chat
-            </small>
+            @if($user->is_online)
+            <small class="online-badge text-success">🟢 Online</small>
+            @else
+            <small class="online-badge text-secondary">⚫ Offline</small>
+            @endif
 
         </div>
 
@@ -181,9 +175,15 @@ class="text-decoration-none text-dark">
             {{ $receiver->name }}
         </h5>
 
-        <small class="text-success">
-            Online
-        </small>
+        @if($receiver->is_online)
+            <small id="receiverOnlineStatus" class="text-success">🟢 Online</small>
+        @else
+            <small id="receiverOnlineStatus" class="text-secondary">⚫ Offline</small>
+        @endif
+
+        <div id="typingIndicator" style="display:none;">
+            <small class="text-muted fst-italic">typing...</small>
+        </div>
 
     </div>
 
@@ -284,15 +284,18 @@ class="text-decoration-none text-dark">
 
 </div>
 
+
+
+
+
 <script>
 
 document.querySelector('input[name="message"]').addEventListener('keypress', function(e){
 
     if(e.key === 'Enter'){
 
-        e.preventDefault();
 
-        this.closest('form').submit();
+        document.getElementById('submit').click();
 
     }
 
@@ -332,7 +335,6 @@ form.addEventListener("submit", function (e) {
 
 <script>
 document.getElementById('messageForm').addEventListener('submit', function(event) {
-
     event.preventDefault();
     console.log("Form Submitted");
 
@@ -398,11 +400,11 @@ document.getElementById('messageForm').addEventListener('submit', function(event
 
 });
 </script>
-<script>
+<!-- <script>
     
 let html = "";
 
-if (message.sender_id == currentUserId) {
+if (message.sender_id ==  window.userId) {
 
     html = `
         <div style="text-align:right;">
@@ -426,6 +428,60 @@ if (message.sender_id == currentUserId) {
 
 document.getElementById("chatBody").innerHTML += html;
 
+</script> -->
+
+<!-- <script>
+    if (user.is_online) {
+    console.log(" Online");
+    } else {
+    console.log(" Offline");
+    }
+</script> -->
+
+<script>
+// Mark current user online when page loads
+fetch('/user/online', {
+    method: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Content-Type': 'application/json'
+    }
+});
+
+// Mark offline when tab/browser closes
+window.addEventListener('beforeunload', function () {
+    navigator.sendBeacon('/user/offline', new Blob(
+        [JSON.stringify({ _token: document.querySelector('meta[name="csrf-token"]').content })],
+        { type: 'application/json' }
+    ));
+});
+
+// Typing indicator
+@if($receiver)
+const messageInput = document.getElementById('message');
+let typingTimeout = null;
+let isTypingNow = false;
+
+function sendTyping(state) {
+    if (isTypingNow === state) return;
+    isTypingNow = state;
+    fetch('/user/typing', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ receiver_id: window.receiverId, is_typing: state })
+    });
+}
+
+if (messageInput) {
+    messageInput.addEventListener('input', function () {
+        sendTyping(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => sendTyping(false), 1500);
+    });
+}
+@endif
 </script>
-</body>
-</html>
+</x-app-layout>

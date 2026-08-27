@@ -46,8 +46,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/{id}', [ChatController::class, 'chat']);
     Route::post('/send-message', [ChatController::class, 'sendMessage']);
 
-    Route::get('/chat-app', [ChatController::class, 'index'])
-    ->name('chat.index');
+    Route::post('/user/online', [ChatController::class, 'setOnline']);
+    Route::post('/user/offline', [ChatController::class, 'setOffline']);
+    Route::post('/user/typing', [ChatController::class, 'typing']);
+
+    Route::get('/chat-app', [ChatController::class, 'index'])->name('chat.app');
+    Route::get('/chat-test',function(){
+        return view('chat');
+    })
+    ->name('chat.test');
 
 });
 
