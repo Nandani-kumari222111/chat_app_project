@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
 use App\Events\MessageSent;
+use App\Events\UserTyping;
 
 
 class ChatController extends Controller
@@ -113,6 +114,28 @@ public function index(Request $request)
     }
 
     return view('chat.index', compact('users', 'receiver', 'messages'));
+}
+
+public function setOnline()
+{
+    auth()->user()->update(['is_online' => true]);
+    return response()->json(['status' => 'ok']);
+}
+
+public function setOffline()
+{
+    auth()->user()->update(['is_online' => false]);
+    return response()->json(['status' => 'ok']);
+}
+
+public function typing(Request $request)
+{
+    event(new UserTyping(
+        auth()->id(),
+        (int) $request->receiver_id,
+        (bool) $request->is_typing
+    ));
+    return response()->json(['status' => 'ok']);
 }
 
 }

@@ -1,11 +1,17 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Chat') }}
+        </h2>
+    </x-slot>
 <p>My ID: {{ auth()->id() }}</p>
-<p>Receiver ID: {{ $receiver->id }}</p>
+<p>Receiver ID: {{ $receiver->id ?? "N/A" }}</p>
 
-<h2>Chat With {{ $receiver->name }}</h2>
+<h2>Chat With {{ $receiver->name ?? "N/A" }}</h2>
 
 <hr>
 
-@foreach($messages as $message)
+@foreach($messages ?? [] as $message)
 
     @if($message->sender_id == auth()->id())
 
@@ -17,7 +23,7 @@
     @else
 
         <p>
-            <strong>{{ $receiver->name }}:</strong>
+            <strong>{{ $receiver->name ?? "N/A" }}:</strong>
             {{ $message->message }}
         </p>
 
@@ -32,7 +38,7 @@
     <input
         type="hidden"
         name="receiver_id"
-        value="{{ $receiver->id }}"
+        value="{{ $receiver->id ?? '' }}"
     >
 
     <input
@@ -50,3 +56,4 @@
     </button>
 
 </form>
+</x-app-layout>
